@@ -48,7 +48,10 @@ defmodule ExAssignment.Todos do
     list_todos(:open)
     |> case do
       [] -> nil
-      todos -> Enum.take_random(todos, 1) |> List.first()
+      todos ->
+        todos
+        |> parse_todos_results()
+        |> List.first()
     end
   end
 
@@ -165,5 +168,11 @@ defmodule ExAssignment.Todos do
       |> Repo.update_all([])
 
     :ok
+  end
+
+  def parse_todos_results(todos) when is_list (todos) do
+    todos
+    |> Enum.map(fn n -> {to_string(n.id), n.priority} end)
+    |> Enum.uniq()
   end
 end
