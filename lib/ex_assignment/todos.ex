@@ -23,20 +23,24 @@ defmodule ExAssignment.Todos do
       [%Todo{}, ...]
 
   """
-  def list_todos(type \\ nil) do
-    cond do
-      type == :open ->
-        from(t in Todo, where: not t.done, order_by: t.priority)
-        |> Repo.all()
+  def list_todos(type) when type == true do
+    Todo
+    |> where(done: ^type)
+    |> order_by([t], t.priority)
+    |> Repo.all()
+  end
 
-      type == :done ->
-        from(t in Todo, where: t.done, order_by: t.priority)
-        |> Repo.all()
+  def list_todos(type) when type == false do
+    Todo
+    |> where(done: ^type)
+    |> order_by([t], t.priority)
+    |> Repo.all()
+  end
 
-      true ->
-        from(t in Todo, order_by: t.priority)
-        |> Repo.all()
-    end
+  def list_todos() do
+    Todo
+    |> order_by([t], t.priority)
+    |> Repo.all()
   end
 
   @doc """
@@ -45,7 +49,7 @@ defmodule ExAssignment.Todos do
   ASSIGNMENT: ...
   """
   def get_recommended() do
-    list_todos(:open)
+    list_todos(false)
     |> case do
       [] -> nil
       todos ->
@@ -55,7 +59,7 @@ defmodule ExAssignment.Todos do
         |> case do
           nil ->
             nil
-          {id, value} ->
+          {id, _value} ->
             get_todo!(id)
           end
     end
@@ -176,7 +180,7 @@ defmodule ExAssignment.Todos do
     :ok
   end
 
-  def parse_todos_results(todos) when is_list (todos) do
+  defp parse_todos_results(todos) when is_list (todos) do
     todos
     |> Enum.map(fn n -> {to_string(n.id), n.priority} end)
     |> Enum.uniq()
