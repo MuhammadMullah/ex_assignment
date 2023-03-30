@@ -52,6 +52,12 @@ defmodule ExAssignment.Todos do
         todos
         |> parse_todos_results()
         |> List.first()
+        |> case do
+          nil ->
+            nil
+          {id, value} ->
+            get_todo!(id)
+          end
     end
   end
 
