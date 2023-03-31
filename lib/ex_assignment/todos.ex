@@ -7,6 +7,7 @@ defmodule ExAssignment.Todos do
   alias ExAssignment.Repo
 
   alias ExAssignment.Todos.Todo
+  alias ExAssignment.Cache
 
   @doc """
   Returns the list of todos, optionally filtered by the given type.
@@ -49,19 +50,16 @@ defmodule ExAssignment.Todos do
   ASSIGNMENT: ...
   """
   def get_recommended() do
-    list_todos(false)
-    |> case do
-      [] -> nil
-      todos ->
-        todos
-        |> parse_todos_results()
-        |> List.first()
-        |> case do
-          nil ->
-            nil
-          {id, _value} ->
-            get_todo!(id)
-          end
+    with todos <- list_todos(false),
+      todos <- parse_todos_results(todos),
+      {id, _value} <- List.first(todos) do
+        recommended_todo = get_todo!(id)
+        Cache.put(recommended_todo.id, recommended_todo)
+
+        recommended_todo
+    else
+      nil ->
+        []
     end
   end
 
