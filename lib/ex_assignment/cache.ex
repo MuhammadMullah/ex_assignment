@@ -1,4 +1,8 @@
 defmodule ExAssignment.Cache do
+  @moduledoc """
+    This module handles caching of the todos to our ets in-memory cache table. It also runs
+    scheduler to clear the cache after every 1 hour.
+  """
   use GenServer
 
   @timer :timer.minutes(60)
@@ -16,7 +20,7 @@ defmodule ExAssignment.Cache do
   end
 
   def delete(key) do
-    GenServer.cast(__MODULE__, {:delete, key})
+    GenServer.call(__MODULE__, {:delete, key})
   end
 
   def put(key, data) do
@@ -35,11 +39,6 @@ defmodule ExAssignment.Cache do
     {:noreply, state}
   end
 
-  def handle_cast({:delete, key}, state) do
-    :ets.delete(@table, key)
-    {:noreply, state}
-  end
-
   def handle_call({:put, key, data}, _, state) do
     result =
     with {:error, nil} <- get(key)  do
@@ -54,11 +53,21 @@ defmodule ExAssignment.Cache do
     {:reply, result, state}
   end
 
+  @doc false
+  @spec handle_call({:delete, {String.t(), String.t()}}, pid, map()) :: {:ok, tuple()} | {:error, term()}
+  def handle_call({:delete, key}, _from, state) do
+    result = :ets.delete(@table, key)
 
+    {:reply, result, state}
+  end
+
+  @doc false
   defp scheduler do
     Process.send_after(self(), :clear_cache, @timer)
   end
 
+  @doc false
+  @spec insert_todo(String.t(), map()) :: {:ok, tuple()} | {:error, term()}
   defp insert_todo(key, todo) do
     case :ets.insert(@table, {key, todo}) do
       true -> {:ok, {key, todo}}
