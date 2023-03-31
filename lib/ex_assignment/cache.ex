@@ -8,7 +8,6 @@ defmodule ExAssignment.Cache do
   @timer :timer.minutes(30)
   @table :todos
 
-
   def start_link(_) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
@@ -35,26 +34,28 @@ defmodule ExAssignment.Cache do
   end
 
   def handle_info({:clear_cache, key}, state) do
-     clear_cache(key)
+    clear_cache(key)
     {:noreply, state}
   end
 
   def handle_call({:put, key, data}, _, state) do
     result =
-    with {:error, nil} <- get(key)  do
-      insert_todo(key, data)
-    else
-      {:ok, data} ->
+      with {:error, nil} <- get(key) do
         insert_todo(key, data)
-      error ->
-        {:error, error}
-    end
+      else
+        {:ok, data} ->
+          insert_todo(key, data)
+
+        error ->
+          {:error, error}
+      end
 
     {:reply, result, state}
   end
 
   @doc false
-  @spec handle_call({:delete, {String.t(), String.t()}}, pid, map()) :: {:ok, tuple()} | {:error, term()}
+  @spec handle_call({:delete, {String.t(), String.t()}}, pid, map()) ::
+          {:ok, tuple()} | {:error, term()}
   def handle_call({:delete, key}, _from, state) do
     result = :ets.delete(@table, key)
 

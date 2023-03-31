@@ -52,12 +52,12 @@ defmodule ExAssignment.Todos do
   """
   def get_recommended() do
     with todos <- list_todos(false),
-      todos <- parse_todos_results(todos),
-      {id, _value} <- List.first(todos) do
-        recommended_todo = get_todo!(id)
-        Cache.put(recommended_todo.id, recommended_todo)
+         todos <- parse_todos_results(todos),
+         {id, _value} <- List.first(todos) do
+      recommended_todo = get_todo!(id)
+      Cache.put(recommended_todo.id, recommended_todo)
 
-        recommended_todo
+      recommended_todo
     else
       nil ->
         []
@@ -157,13 +157,14 @@ defmodule ExAssignment.Todos do
   def check(id) do
     get_todo!(id)
     |> change(done: true)
-    |> Repo.update
+    |> Repo.update()
     |> case do
       {:ok, todo} ->
         Cache.delete(todo.id)
         :ok
-      end
+    end
   end
+
   @doc """
   Marks the todo referenced by the given id as unchecked (not done).
 
@@ -181,7 +182,7 @@ defmodule ExAssignment.Todos do
     :ok
   end
 
-  defp parse_todos_results(todos) when is_list (todos) do
+  defp parse_todos_results(todos) when is_list(todos) do
     todos
     |> Enum.map(fn n -> {to_string(n.id), n.priority} end)
     |> Enum.uniq_by(fn {_, y} -> y end)
