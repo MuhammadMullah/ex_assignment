@@ -5,7 +5,7 @@ defmodule ExAssignment.Cache do
   """
   use GenServer
 
-  @timer :timer.minutes(60)
+  @timer :timer.minutes(30)
   @table :todos
 
 
@@ -34,8 +34,8 @@ defmodule ExAssignment.Cache do
     end
   end
 
-  def handle_info(:clear_cache, state) do
-    scheduler()
+  def handle_info({:clear_cache, key}, state) do
+     clear_cache(key)
     {:noreply, state}
   end
 
@@ -62,8 +62,8 @@ defmodule ExAssignment.Cache do
   end
 
   @doc false
-  defp scheduler do
-    Process.send_after(self(), :clear_cache, @timer)
+  defp scheduler(key \\ nil) do
+    Process.send_after(self(), {:clear_cache, key}, @timer)
   end
 
   @doc false
@@ -72,6 +72,13 @@ defmodule ExAssignment.Cache do
     case :ets.insert(@table, {key, todo}) do
       true -> {:ok, {key, todo}}
       error -> {:error, error}
+    end
+  end
+
+  defp clear_cache(key) do
+    case delete(key) do
+      true ->
+        :ok
     end
   end
 end

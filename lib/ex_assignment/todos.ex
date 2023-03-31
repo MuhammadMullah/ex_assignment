@@ -4,6 +4,7 @@ defmodule ExAssignment.Todos do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset
   alias ExAssignment.Repo
 
   alias ExAssignment.Todos.Todo
@@ -154,13 +155,15 @@ defmodule ExAssignment.Todos do
 
   """
   def check(id) do
-    {_, _} =
-      from(t in Todo, where: t.id == ^id, update: [set: [done: true]])
-      |> Repo.update_all([])
-
-    :ok
+    get_todo!(id)
+    |> change(done: true)
+    |> Repo.update
+    |> case do
+      {:ok, todo} ->
+        Cache.delete(todo.id)
+        :ok
+      end
   end
-
   @doc """
   Marks the todo referenced by the given id as unchecked (not done).
 
