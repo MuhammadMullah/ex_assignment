@@ -183,6 +183,6 @@ defmodule ExAssignment.Todos do
   defp parse_todos_results(todos) when is_list (todos) do
     todos
     |> Enum.map(fn n -> {to_string(n.id), n.priority} end)
-    |> Enum.uniq()
+    |> Enum.uniq_by(fn {_, y} -> y end)
   end
 end
